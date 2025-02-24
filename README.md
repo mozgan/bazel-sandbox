@@ -6,6 +6,7 @@ C++ template project using bazel build system
 
 ## CI Build Results 🚀
 
-Last Build: date
+Last Build: Mon Feb 24 14:31:52 UTC 2025
 
 ### ✅ Latest Build Status: success
+
