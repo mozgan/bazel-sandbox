@@ -1,0 +1,68 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bazel
+        uses: bazelbuild/setup-bazelisk@v2
+
+      - name: Build Project
+        run: bazel build //...
+
+      - name: Run Tests
+        run: bazel test //...
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: bazel-bin/
+
+  update-readme:
+    name: Update README with CI Results
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Build & Test Results
+        run: |
+          echo "## CI Build Results 🚀" > ci_results.md
+          echo "" >> ci_results.md
+          echo "Last Build: $(date)" >> ci_results.md
+          echo "" >> ci_results.md
+          echo "### ✅ Latest Build Status: ${{ job.status }}" >> ci_results.md
+          echo "" >> ci_results.md
+
+      - name: Update README.md
+        run: |
+          sed -i '/## CI Build Results 🚀/,$d' README.md
+          cat ci_results.md >> README.md
+          rm ci_results.md
+
+      - name: Commit Changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add README.md
+          git commit -m "Update CI results in README.md" || echo "No changes to commit"
+          git push
+
+
+
